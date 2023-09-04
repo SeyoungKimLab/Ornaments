@@ -1,5 +1,5 @@
 # ornaments
-__ornaments__ is a wrapper program around __kallisto__ to facilitate
+__Ornaments__ is a wrapper program around kallisto to facilitate
 variant-aware pseudoalignment of RNA-Seq data to obtain allele-specific read counts 
 or perform allele specific transcript quantification. __ornaments__ takes as input
 a list of variants (both SNPs and indels are supported) and a reference
