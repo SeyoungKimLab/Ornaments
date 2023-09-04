@@ -573,7 +573,7 @@ struct EMAlgorithm {
         }
       }
 
-      std::ofstream out_data_read_counts(opt.output + "/read_counts.txt");
+      std::ofstream out_data_read_counts(opt.output + "/allele_counts.txt");
 
       /* Output format should be chr, pos, ref, alt, alt2, gt (unphased, so NA), ref, alt, other */
       // 0 doesn't exist as a key

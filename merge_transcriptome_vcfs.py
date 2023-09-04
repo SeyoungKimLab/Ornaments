@@ -6,12 +6,12 @@ import sys
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i','--input-dir', required=True, type=str)
+    parser.add_argument('-i','--in-files', required=True, type=str)
     parser.add_argument('-o','--outfile', type=str)
     parser.add_argument('-s','--sample-file', required=True, type=str)
     return parser.parse_args()
 
-# Arguments: first is location of directory, second is out file name, third is sample file or sample name
+# Arguments: first is a list of files, second is out file name, third is sample file or sample name
 def main():
   args = parse_arguments()
 
@@ -27,18 +27,15 @@ def main():
     samples = [samples_file]
 
   print('Extracting relevant SNPs for ornament transcriptome over: ', samples)
-  i_dir = args.input_dir
+  in_files = open(args.in_siles).readlines()
   o_file = args.outfile
   with open(o_file, 'w+') as final_vcf:
     header_written = False
-    for i in [*range(1, 23), 'X']:
-      print('Processing chromosome ', i)
-      #filename = 'chr' + str(i) + '.transcriptome.vcf'
-      filename = 'chr' + str(i) + '.transcriptome.vcf'
-      # filename = 'phase_chr' + str(i) + '.vcf.gz'
+    for filename in in_files:
+      print(f'Processing {filename}')
       num_processed = 0
       tot_lines = 0
-      with open(i_dir + '/' + filename) as curr_chr_tvcf:
+      with open(filename) as curr_chr_tvcf:
         start = False
         inds = []
         for line in curr_chr_tvcf:
