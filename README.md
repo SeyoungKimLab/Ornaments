@@ -24,13 +24,27 @@ mkdir build
 cd build
 ```
 
-Finally, we will build the executable using cmake.
+Finally, we will build the executable using cmake. If you do not have cmake installed, you can get it by running 
+
+```
+brew install cmake
+```
+
+Then, run:
+
 ```
 cmake ..
 make
 ```
 
-An executable should be built with the name _ornaments/build/src/ornaments_.
+An executable should be built with the name _ornaments/build/src/ornaments_. If you would rather install the software
+in your home directory, rather than the above, you should run:
+```
+cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$HOME
+make install
+```
+
+which will build an executable at _$HOME/bin/ornaments_.
 
 ## Data
 Example transcriptome files and gene annotation files necessary for the scripts can be found [here](https://www.gencodegenes.org/human/).
@@ -54,16 +68,13 @@ conda install -c bioconda gtfparse
 ### Converting genomic coordinates to transcriptome coordinates for variants
 
 The script `convert_genomic_vcf_to_transcriptomic_vcf.py` transforms
-the genome coordinates of variants to transcriptomic coordinates
-(one chromosome at a time, in vcf format). 
-
-[comment]: Above, is it necessary to say one chromosome at a time? can we delete this?
+the genome coordinates of variants to transcriptomic coordinates.
 
 
 ```
 Usage: python3 convert_genomic_vcf_to_transcriptomic_vcf.py -v <file_vcf> -g <file_annot> -t <file_tr> -o <file_tr_vcf> -c <file_conv>
 
--v <file_vcf>:		input VCF file for variants in genome coordinates
+-v <file_vcf>:		input gzipped VCF file for variants in genome coordinates
 -g <file_annot>: 	input gene-to-transcript annotation file
 -t <file_tr>: 		input reference transcriptome file
 -o <file_tr_vcf>: 	output VCF file for variants in transcriptome coordinates 
@@ -82,14 +93,10 @@ python3 convert_genomic_vcf_to_transcriptomic_vcf.py \
 ```
 
 
-[Comment]: In the example above, if the VCF file has to be gzipped, then say that in the Usage.
-
 A compatible reference transcriptome and transcript annotation file should be used. 
-If you are getting both files from the same source, make sure that the version is the same. If there 
-are inconsistencies, this will be reflected in the output of the script. If there are no inconsistencies,
-you should see the following output from the script:
+If you are getting both files from the same source, make sure that the version is the same. If the
+versions are the same, then you should see the following output from the script:
 
-[Comment]: the sentence above [If there are inconsistencies, this will be reflected ....] Could you revise this tfor clarity? i.e., what is the output of the script here, remapped or coord file above? what do you mean by [reflected]?
 
 ```
 Number of SNPs inconsistent with conversion:  0
@@ -107,17 +114,15 @@ Usage: python3 merge_transcriptome_vcfs.py -i <file_list> -o <file_vcf> -s <file
 -s <file_sample>: 	input file with a list of sample names, one sample name in each line
 ```
 
-[Comment]: in the code block above, the description of file_sample is unclear. What are sample names? Are they filenames, or sample names inside a file? And, in the sentence below, [one can specify a single sample in place of a sample file], this is not clear. Is this a filename for that single sample? What is the format of that file?
+Only variants that are heterozygous in at least one of the samples will be retained. We also provide an alternative
+usage for this script, where you can specify a single sample instead of a file containing sample names:
 
-
-Only variants that are heterozygous in at least one of the samples will be retained. 
-Alternatively, one can specify a single sample in place of a sample file.
-
-
-
-Example usage:
 ```
-python3 merge_transcriptome_vcfs.py -i in_files -o transcriptome.vcf -s sample_file
+Usage: python3 merge_transcriptome_vcfs.py -i <file_list> -o <file_vcf> -s <sample_name>
+
+-i <file_list>: 	input file listing the names of the files to be merged, with one file name in each line
+-o <file_vcf>: 		output file `transcriptome.vcf` 
+-s <sample_name>: 	the sample name in the VCF file, i.e. "HG00405"
 ```
 
 In the examples folder, there is only one chromosome which we consider, so running this step is not necessary.
@@ -145,10 +150,9 @@ Usage: python3 create_personalized_transcriptome.py -f <file_tr> -v <file_vcf> -
 -t <opt>: 		set opt to ornaments for ornament personalized transcriptome or 
 						to diploid for diploid personalized transcriptome
 -o <file_ptr>:		output file containing ornament or diploid personalized transcriptome
--s <SAMPLE>: 		the name that refers to the sample in the VCF file.
+-s <SAMPLE>: 		the sample name in the VCF file, i.e. "HG00405"
+-k <kmer_len>: 		the length of kmer to use for ornament transcriptome construction, default = 31
 ```
-
-[Comment]: In the code block above, the description of SAMPLE is not clear. See my comments on SAMPLE above as well. They are related comments.
 
 Diploid personalized transcriptome contains left (suffixed by `_L`) and right 
 (suffixed by `_R`) alleles for each transcript, 
@@ -165,7 +169,7 @@ python3 create_personalized_transcriptome.py \
 -f examples/truncated_transcriptome.fasta \
 -v examples/truncated_chr1.transcriptome.vcf \
 -t ornament \
--o SAMPLE.ornament \
+-o SAMPLE.ornament.fa \
 -s SAMPLE
 ```
 
@@ -176,37 +180,29 @@ python3 create_personalized_transcriptome.py \
 -f examples/truncated_transcriptome.fasta \
 -v examples/truncated_chr1.transcriptome.vcf \
 -t diploid \
--o SAMPLE.diploid \
+-o SAMPLE.diploid.fa \
 -s SAMPLE
 ```
-
-[Comment]: SAMPLE.ornament and SAMPLE.diploid in the example above. Shouldn't this be SAMPLE.ornament.fa etc?
-
 
 ## Ornaments 
 
 ### index
 
-[Comment]: Does `ornaments index' detect whether it is getting ornament or diploid personalized transcriptome automatically? Or does it have to be specified in the file name like *.ornament and *.diploid?
 
 ```
-Usage: build/src/ornaments index -i <file_orn> <file_orn_ind>
+Usage: build/src/ornaments index -i <out_index> -k <k> <in_fasta>
 
 Arguments:
--i <file_orn>:		input file for personalized transcriptome
-<file_orn_ind>:		output file that contains an ornament index 
+-i <out_index>:		output file that contains an ornament index 
+<in_fasta>:		    input file for personalized transcriptome
+-k <k>: 		    k-mer length to be used for index construction, default = 31
 
 ```
 Example usage to construct an ornament index:
 
 ```
-build/src/ornaments index -i SAMPLE.ornament.fa SAMPLE.ornament.index
+build/src/ornaments index -i SAMPLE.ornament.index SAMPLE.ornament.fa
 ```
-
-[Comment]: I see in kallisto's install.md 1. Execute cmake. There are a few options: - `-DCMAKE_INSTALL_PREFIX:PATH=$HOME` which will put kallisto in `$HOME/bin` as opposed to the default (`/usr/local/bin`). Do the same and use ornaments in the usage and example instead of build/src/ornaments. Make sure you try it and this works.
-
-[Comment]: I don't see an example fastq file supplied in the example folder. Does kallisto have an example?
-
 
 ### quant
 
@@ -221,7 +217,7 @@ Arguments:
 						`allele_counts.txt` for expected allele specific-read counts 
 						`tpms.txt` for TPM estimates for transcripts 
 --vcf <file_vcf>:	sorted.transcriptome.vcf the variant information, 
---sample <SAMPLE>: 	sample ID in the population data for quantification 
+--sample <SAMPLE>: 	sample name in the population data for quantification, i.e. "HG00405"
 <file_fastq1>:		FASTQ file 1 in paired-end reads 
 <file_fastq2>: 		FASTQ file 2 in paired-end reads
 --single:		flag for single-end reads 
@@ -230,28 +226,19 @@ Arguments:
 <file_fastq>:		FASTQ file for single-end reads
 ```
 
-[Comment]: Again, the role and format of SAMPLE is unclear.
-
 Example usage to quantify with paired-end reads for a given `SAMPLE`:
 
 ```
-build/src/ornaments quant -i ornament_index -o output_dir \
---vcf sorted.transcriptome.vcf --sample SAMPLE SAMPLE_1.fastq SAMPLE_2.fastq
+build/src/ornaments quant -i examples/HG00405.ornament.index -o output_dir \
+--vcf examples/sorted.transcriptome.vcf --sample HG00405 examples/SAMPLE_1.fastq examples/SAMPLE_2.fastq
 ```
 
 Example usage to quantify with single-end reads for a given `SAMPLE`: 
 ```
-build/src/ornaments quant -i ornament_index -o output_dir \
---vcf sorted.transcriptome.vcf --sample SAMPLE --single -l 160 -s 25 SAMPLE.fastq
+build/src/ornaments quant -i examples/HG00405.ornament.index -o output_dir \
+--vcf examples/sorted.transcriptome.vcf --sample HG00405 --single -l 150 -s 25 examples/SAMPLE.fastq
 ```
 
-[comment]: About [the fragment length mean 160 bp and the standard deviation 25 bp can be used for the Geuvadis data], is the example file a Geuvadis sample? I don't think it is? I think the mean length and standard deviation come from each dataset, in which case this is dataset-specific and the numbers from that dataset should be used. If this is the case, you can leave out this sentence.
-
-[comment]: I don't see SAMPLE_1.fastq, SAMPLE_2.fastq, and SAMPLE.fastq in the examples folder. The folder should include these files. One should be able to copy and paste the line above to the command line and hit enter.
-
 [comment]: When I run build/src/ornaments without any options, I get kallisto's usage. Once we finalize this document, this should be replaced with the Usage for Ornaments.
-
-[comment]: kallisto has lots of other options. Does Ornaments inherit this? Some are pretty basic, like k in k-mer and definitely should be included.
-
 
 Ornaments is built as an addition to kallisto. All credit for the kallisto software is given to its original authors.

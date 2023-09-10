@@ -1,4 +1,5 @@
 import argparse
+import gzip
 import sys
 import numpy as np
 from itertools import chain, combinations
@@ -73,7 +74,6 @@ def get_snps(curr_range, snp_index):
 # If there is an overlap, we have to extend the region that we are considering
 def calculate_extract_for_transcript(snp_list, ins_dict={}, del_dict={}, k=31):
   i = 0
-  k = 31
   curr_run = 1
   added_bp = 0
   # print(snp_list, ins_dict, del_dict)
@@ -1805,11 +1805,12 @@ class TranscriptVariantList:
 def write_phased_ornament_transcriptome(
     transcript_to_sequence,
     transcriptome_snps,
-    output_file_prefix,
-    samples):
+    output_file,
+    samples,
+    k=31
+):
 
-  printer = Printer(output_file_prefix + '.fa')
-  k = 31
+  printer = Printer(output_file)
   for tname in transcript_to_sequence:
     sequence = transcript_to_sequence[tname]
     tname = tname.split('|')[0]
@@ -1905,8 +1906,10 @@ def write_phased_ornament_transcriptome(
 def write_unphased_ornament_transcriptome(
     transcript_to_sequence,
     transcriptome_snps,
-    output_file_prefix,
-    samples):
+    output_file,
+    samples,
+    k=31
+):
 
   # 1. Get a list of all heterozygous and homozygous alt variants for a sample
   # 2. Apply all the homozygous alt variants for a sample, and modify the coordinates of het loci
@@ -1915,19 +1918,10 @@ def write_unphased_ornament_transcriptome(
   #    in the same way that the diploid transcriptome retains variants
   # 5. Calculate the shaded k-mers, by applying snps and then delins, and then trimming the resulting
   #    sequences to make sure that k-mers are not shared across the ornaments
-  printer = Printer(output_file_prefix + '.fa')
-  k = 31
+  printer = Printer(output_file)
   for tname in transcript_to_sequence:
     sequence = transcript_to_sequence[tname]
     tname = tname.split('|')[0]
-
-    # if tname != 'ENST00000634670.1':
-    #   continue
-    # if tname != 'ENST00000528482.6':
-    #   continue
-    # print(tname, transcriptome_snps)
-    # if tname != 'ENST00000355371.9':
-    #   continue
 
     if tname not in transcriptome_snps:
       printer.write_sequence(tname, sequence)
@@ -2045,8 +2039,8 @@ def write_unphased_ornament_transcriptome(
 
         # Simplest way: undo that change, add trimmer in phased case
 def write_diploid_transcriptome(
-    transcript_to_sequence, transcriptome_snps, output_file_prefix, coordinate_file=None):
-  printer = Printer(output_file_prefix + '.fa', coordinate_file)
+    transcript_to_sequence, transcriptome_snps, output_file, coordinate_file=None):
+  printer = Printer(output_file, coordinate_file)
   for tname in transcript_to_sequence:
     ref = transcript_to_sequence[tname]
     short_tname = tname.split('|')[0]
@@ -2282,12 +2276,11 @@ def write_ornament_transcriptome(transcript_to_sequence, transcriptome_snps, out
     
 
 # Command line arguments: transcriptome, transcriptome vcf file, type (diploid or ornaments), output file name prefix
-def main(tfasta, tvcf, output_type, output_file, samples, coordinates):
+def main(tfasta, tvcf, output_type, output_file, samples, coordinates, k):
   if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('USAGE: transcriptome fasta file, transcriptome vcf file, diploid/ornaments, output filename prefix, sample(s), bias correction (off by default)')
     return
 
-  tfasta, tvcf, output_type, output_file = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
   bias_correction = False
   phased = False
 
@@ -2331,21 +2324,22 @@ def main(tfasta, tvcf, output_type, output_file, samples, coordinates):
   else:
     if phased:
       write_phased_ornament_transcriptome(
-              transcript_to_sequence, transcriptome_snps, output_file, current_samples)
+              transcript_to_sequence, transcriptome_snps, output_file, current_samples, k)
     else:
       write_unphased_ornament_transcriptome(
-              transcript_to_sequence, transcriptome_snps, output_file, current_samples)
+              transcript_to_sequence, transcriptome_snps, output_file, current_samples, k)
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
   parser.add_argument('-f','--transcriptome-fasta', required=True, type=str)
   parser.add_argument('-v','--transcriptome-vcf', required=True, type=str)
   parser.add_argument('-t','--output-type', required=True, type=str, choices=['diploid', 'ornament'])
-  parser.add_argument('-o','--output-prefix', required=True, type=str)
+  parser.add_argument('-o','--output-file', required=True, type=str)
   parser.add_argument('-s','--samples', required=True, type=str, help='comma separated list, or "ALL"')
   parser.add_argument('-c', '--coordinates', type=str)
+  parser.add_argument('-k', '--kmer-length', default=31, type=int)
   return parser.parse_args()
 
 if __name__ == "__main__":
   args = parse_arguments()
-  main(args.transcriptome_fasta, args.transcriptome_vcf, args.output_type, args.output_prefix, args.samples, args.coordinates)
+  main(args.transcriptome_fasta, args.transcriptome_vcf, args.output_type, args.output_file, args.samples, args.coordinates, args.kmer_length)
