@@ -126,7 +126,7 @@ Usage: python3 merge_transcriptome_vcfs.py -i <file_list> -o <file_vcf> -s <file
 -i <file_list>: 	input file listing the names of the files to be merged, with one file name in each line
 -o <file_vcf>: 		output merged VCF file for variants in transcriptome coordinates
 -s <file_sample>: 	input file with a list of sample names, one sample name in each line, if processing multiple samples,
-                        or the sample name in the VCF file, if processing one sample
+                            or the sample name in the VCF file, if processing one sample
 ```
 
 This script expects all files in `<file_list>` to be in VCF format, and each file should have data for all samples in `<file_sample>`.
@@ -159,8 +159,8 @@ Usage: python3 create_personalized_transcriptome.py -f <file_tr> -v <file_vcf> -
 
 -f <file_tr>: 		input reference transcriptome file
 -v <file_vcf>:		input VCF file for variants in transcriptome coordinates
--t <opt>: 			set <opt> to ornaments for ornament personalized transcriptome or 
-                        to diploid for diploid personalized transcriptome
+-t <opt>: 		set <opt> to ornaments for ornament personalized transcriptome or 
+                            to diploid for diploid personalized transcriptome
 -o <file_ptr>:		output file containing ornament or diploid personalized transcriptome
 -s <SAMPLE>: 		one desired sample from the VCF file, i.e. "HG00405" which should be contained in <file_vcf>
 -k <kmer_len>: 		the length of kmer to use for ornament transcriptome construction, default = 31
@@ -211,7 +211,7 @@ Usage: build/src/ornaments index -i <file_index> -k <k> <file_fasta>
 Arguments:
 -i <file_index>:	output file that contains an ornament index 
 <file_fasta>:		input file for personalized transcriptome (ornament personalized transcriptome to run ornaments, normal reference transcriptome to run kallisto)
--k <k>:				k-mer length to be used for index construction, default = 31
+-k <k>:			k-mer length to be used for index construction, default = 31
 
 ```
 
@@ -239,9 +239,9 @@ Arguments:
 --sample <SAMPLE>: 	one desired sample from the VCF file, i.e. "HG00405" which should be contained in <file_vcf>
 <file_fastq1>:		FASTQ file 1 in paired-end reads 
 <file_fastq2>: 		FASTQ file 2 in paired-end reads
---single:			flag for single-end reads 
--l <d_l>: 			fragment length mean for single-end reads
--s <d_s>: 			standard deviation for single-end reads
+--single:		flag for single-end reads 
+-l <d_l>: 		fragment length mean for single-end reads
+-s <d_s>: 		standard deviation for single-end reads
 <file_fastq>:		FASTQ file for single-end reads
 ```
 
