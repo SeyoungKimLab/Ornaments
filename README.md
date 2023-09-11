@@ -1,12 +1,13 @@
 # Ornaments
-Ornaments is a lightweight modification of kallisto to facilitate
-variant-aware pseudoalignment of RNA-Seq data to obtain allele-specific read counts 
-or perform allele specific transcript quantification. Ornaments takes as input
-a list of variants (both SNPs and indels are supported) and a reference
-transcriptome to create a modified reference that can accommodate allele-specific
-alignments. Ornaments requires that the variants
-are listed in terms of transcriptomic coordinates. We provide helper scripts
-to prepare the ornaments reference as well as transform the variant coordinates.
+Ornaments is a lightweight modification of kallisto that facilitates
+variant-aware pseudoalignment of RNA-Seq reads to obtain expected allele-specific read counts 
+at heterozygous variant loci in addition to transcriptome quantification. 
+
+Ornaments takes as input an ornament personalized transcriptome and reads.
+Ornaments requires that the variants are listed in terms of transcriptomic coordinates. 
+We provide helper scripts to transform the variant coordinates from genomic to transcriptomic coordinates
+and to generate an ornament personalized transcriptome from 
+a list of variants (both SNPs and indels are supported) and a reference transcriptome.
 
 ## Compiling
 To compile ornaments, cmake is required. First, clone the repository and go into the
@@ -17,7 +18,7 @@ git clone https://gitlab.com/aadduri/ornaments.git
 cd ornaments
 ```
 
-Next, we need to create a build folder, which will contain the __ornaments__ executable.
+Next, we need to create a build folder. This folder will contain the ornaments executable.
 
 ```
 mkdir build
@@ -30,31 +31,31 @@ Finally, we will build the executable using cmake. If you do not have cmake inst
 brew install cmake
 ```
 
-Then, run:
+Then, run
 
 ```
 cmake ..
 make
 ```
 
-An executable should be built with the name _ornaments/build/src/ornaments_. If you would rather install the software
-in your home directory, rather than the above, you should run:
+An executable will be built with the path/name _ornaments/build/src/ornaments_. If you would rather install the software
+in your home directory, rather than the above, you should run
 ```
 cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$HOME
 make install
 ```
 
-which will build an executable at _$HOME/bin/ornaments_.
+This will build an executable at _$HOME/bin/ornaments_.
 
 ## Data
-Example transcriptome files and gene annotation files necessary for the scripts can be found [here](https://www.gencodegenes.org/human/).
+Example transcriptome files and gene annotation files necessary for the helper scripts can be found [here](https://www.gencodegenes.org/human/).
 
-You can download a list of variant files [here](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20201028_3202_phased/). The files of interest are the .vcf.gz files which contain a list of all the phased variants, separated by chromosome.
+You can download a list of variant files [here](http://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20201028_3202_phased/). The files of interest are the .vcf.gz files that contain a list of all the phased variants, separated by chromosome.
 
 For convenience, we have included a set of example files in the _examples_ folder, which we will use in the workflow examples below.
 
 ## Setting up the dependencies
-In order to run __Ornaments__, you need to have [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) installed. Once you have installed conda, install the [biopython](https://anaconda.org/conda-forge/biopython) and [gtfparse](https://anaconda.org/bioconda/gtfparse) packages:
+In order to run Ornaments, you need to have [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) installed. Once you have installed conda, install the [biopython](https://anaconda.org/conda-forge/biopython) and [gtfparse](https://anaconda.org/bioconda/gtfparse) packages:
 
 ```
 conda create --name ornaments
@@ -63,7 +64,18 @@ conda install -c conda-forge biopython
 conda install -c bioconda gtfparse
 ```
 
+[Comment]: I think biopython and gtfparse are for the helper scripts not for the main Ornaments? Then, I suggest you say that above.
+
 ## Preparation of variants
+
+
+Since Ornaments requires that the variants are listed in terms of transcriptomic coordinates,
+are ordered within each transcript, and are merged into a single file if stored across multiple files, 
+we provide helper scripts to transform the variant coordinates from genomic to transcriptomic coordinates,
+to sort the variants, and to merge the variant files. The output variant file from these scripts will be
+used as input to construct an ornament personalized transcriptome.
+
+
 
 ### Converting genomic coordinates to transcriptome coordinates for variants
 
@@ -103,32 +115,32 @@ Number of SNPs inconsistent with conversion:  0
 ```
 
 ### Merging (if there are multiple transcriptome variant files)
-The script `merge_transcriptome_vcfs.py` merges the transcriptome variant files from the previous step,
-if your variants span more than one chromosome.
+If your variants are stored in multiple files (e.g., your variants span more than one chromosome and 
+each file stores one chromosome at a time), these files should be merged into a single file.
+The script `merge_transcriptome_vcfs.py` merges the transcriptome variant files from the previous step.
+
 
 ```
 Usage: python3 merge_transcriptome_vcfs.py -i <file_list> -o <file_vcf> -s <file_sample>
 
 -i <file_list>: 	input file listing the names of the files to be merged, with one file name in each line
--o <file_vcf>: 		output file `transcriptome.vcf` 
--s <file_sample>: 	input file with a list of sample names, one sample name in each line
+-o <file_vcf>: 		output merged VCF file for variants in transcriptome coordinates
+-s <file_sample>: 	input file with a list of sample names, one sample name in each line, if processing multiple samples,
+			or the sample name in the VCF file, if processing one sample
 ```
 
-Only variants that are heterozygous in at least one of the samples will be retained. We also provide an alternative
-usage for this script, where you can specify a single sample instead of a file containing sample names:
+[Comment]: When you say [the sample name in the VCF file] above in the -s option, is it a name used inside file_list? So each file in file_list contains one or more sample data? 
 
-```
-Usage: python3 merge_transcriptome_vcfs.py -i <file_list> -o <file_vcf> -s <sample_name>
+[Comment]: It sounds like this script actually performs two tasks: 1) merging multiple files, 2) extracting heterozygous sites. The item 2) should be done even for a single file case, correct? This part is unclear.
 
--i <file_list>: 	input file listing the names of the files to be merged, with one file name in each line
--o <file_vcf>: 		output file `transcriptome.vcf` 
--s <sample_name>: 	the sample name in the VCF file, i.e. "HG00405"
-```
+[Comment]: I thought there used to be an example usage code block. Could you put it back? You can do this just for a single sample case.
 
-In the examples folder, there is only one chromosome which we consider, so running this step is not necessary.
+Only variants that are heterozygous in at least one of the samples in `<file_sample>` will be retained. 
+
+In the examples folder, we consider only one chromosome, so running this step is not necessary.
 
 ### Sorting (if variants are not sorted in transcriptome variant files)
-If the VCF file you started with is already sorted, you can skip this part. 
+If variants in the VCF file you started with are already sorted, you can skip this part. 
 Otherwise, you can use this command to sort the variants for each transcript 
 in the transcriptome variant file, to sort the transcriptome VCF, taken from 
 [here](https://www.biostars.org/p/299659/).
@@ -137,31 +149,34 @@ in the transcriptome variant file, to sort the transcriptome VCF, taken from
 cat transcriptome.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1 -k2,2n"}' > sorted.transcriptome.vcf
 ```
 
-You should replace `transcriptome.vcf` with your file names. Upon merging and sorting, we can use the provided script 
+You should replace `transcriptome.vcf` with your file name. 
 
 ## Ornament personalized transcriptome
-The script `create_personalized_transcriptome.py` modifies the reference transcriptome and produces ornament personalized transcriptome or diploid personalized transcriptome.
+The script `create_personalized_transcriptome.py` modifies the reference transcriptome with the variant information that was prepared above, and produces ornament personalized transcriptome. This script can also be used to generate a diploid personalized transcriptome.
 
 ```
 Usage: python3 create_personalized_transcriptome.py -f <file_tr> -v <file_vcf> -t <opt> -o <file_ptr> -s <SAMPLE>
 
 -f <file_tr>: 		input reference transcriptome file
 -v <file_vcf>:		input VCF file for variants in transcriptome coordinates
--t <opt>: 		set opt to ornaments for ornament personalized transcriptome or 
-						to diploid for diploid personalized transcriptome
+-t <opt>: 		set <opt> to ornaments for ornament personalized transcriptome or 
+			to diploid for diploid personalized transcriptome
 -o <file_ptr>:		output file containing ornament or diploid personalized transcriptome
 -s <SAMPLE>: 		the sample name in the VCF file, i.e. "HG00405"
 -k <kmer_len>: 		the length of kmer to use for ornament transcriptome construction, default = 31
 ```
 
+[Comment]: About the option -s `<SAMPLE>`, is it one sample out of many samples in `<file_vcf>`? i.e., is the SAMPLE name coming from inside of file_vcf?
+
 Diploid personalized transcriptome contains left (suffixed by `_L`) and right 
 (suffixed by `_R`) alleles for each transcript, 
 wherein the phased variants have been imputed into each transcript. 
 
-`SAMPLE.ornament.fa`, output of this script, input file to Ornaments 
-__Ornaments__ expands the functionality of kallisto, meaning it functions differently 
-only if `SAMPLE.ornament.fa` is provided as input. Otherwise, with a reference transcriptome, 
-it should behave the exact same as kallisto.
+
+The output file of this script `<file_ptr>` contains the ornament personalized transcriptome to be used as an input file to Ornaments. 
+Ornaments expands the functionality of kallisto, meaning it functions differently 
+only if `<file_ptr>` is provided as input. Otherwise, with a reference transcriptome, 
+it should behave exactly the same as kallisto.
 
 Example usage to create ornament personalized transcriptome:
 ```
@@ -184,20 +199,26 @@ python3 create_personalized_transcriptome.py \
 -s SAMPLE
 ```
 
+
 ## Ornaments 
+
+Given the ornaments personalized transcriptome above, Ornaments is run with two successive commands: `index` for generating an ornaments index and `quant` for quantification of transcriptome and allele-specific expression levels at heterozygous variant loci.
 
 ### index
 
 
 ```
-Usage: build/src/ornaments index -i <out_index> -k <k> <in_fasta>
+Usage: build/src/ornaments index -i <file_index> -k <k> <file_fasta>
 
 Arguments:
--i <out_index>:		output file that contains an ornament index 
-<in_fasta>:		    input file for personalized transcriptome
--k <k>: 		    k-mer length to be used for index construction, default = 31
+-i <file_index>:	output file that contains an ornament index 
+<file_fasta>:		input file for personalized transcriptome
+-k <k>:			k-mer length to be used for index construction, default = 31
 
 ```
+
+[Comment]: Can `<file_index>` be either ornament per. transcriptome (to run ornments) or ref transcriptome (to run kallisto)? It sounds that way in the previous section. If that's the case, this needs to be explained in the arguments in the code block. But, does ornaments index recognize orn vs ref transcriptome automatically, or do you have to use a specific file name for each type? 
+
 Example usage to construct an ornament index:
 
 ```
@@ -214,8 +235,8 @@ build/src/ornaments quant -i <file_orn_ind> -o <dir_out> --vcf <file_vcf> --samp
 Arguments:
 -i <file_orn_ind>:	input file for ornament index 
 -o <dir_out>: 		two output files will be added to the <dir_out> folder 
-						`allele_counts.txt` for expected allele specific-read counts 
-						`tpms.txt` for TPM estimates for transcripts 
+			`allele_counts.txt` for expected allele specific-read counts 
+			`tpms.txt` for TPM estimates for transcripts 
 --vcf <file_vcf>:	sorted.transcriptome.vcf the variant information, 
 --sample <SAMPLE>: 	sample name in the population data for quantification, i.e. "HG00405"
 <file_fastq1>:		FASTQ file 1 in paired-end reads 
@@ -225,6 +246,8 @@ Arguments:
 -s <d_s>: 		standard deviation for single-end reads
 <file_fastq>:		FASTQ file for single-end reads
 ```
+
+[Comment]: What is the relationship between `<file_vcf>` and `<SAMPLE>`? Is SAMPLE one of the samples in file_vcf? Do you actually use the variant information in this vcf? i.e., shouldn't ornament personalized transcriptome (input to index) be enough?
 
 Example usage to quantify with paired-end reads for a given `SAMPLE`:
 
