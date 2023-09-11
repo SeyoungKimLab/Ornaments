@@ -27,7 +27,7 @@ def main():
     samples = [samples_file]
 
   print('Extracting relevant SNPs for ornament transcriptome over: ', samples)
-  in_files = open(args.in_siles).readlines()
+  in_files = [f.strip() for f in open(args.in_files).readlines()]
   o_file = args.outfile
   with open(o_file, 'w+') as final_vcf:
     header_written = False

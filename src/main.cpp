@@ -1720,23 +1720,17 @@ void PrintCite() {
 }
 
 void PrintVersion() {
-  cout << "kallisto, version " << 	KALLISTO_VERSION << endl;
+  cout << "ornaments, using kallisto version " << 	KALLISTO_VERSION << endl;
 }
 
 void usage() {
-  cout << "kallisto " << KALLISTO_VERSION << endl << endl
-       << "Usage: kallisto <CMD> [arguments] .." << endl << endl
+  cout << "ornaments, using kallisto " << KALLISTO_VERSION << endl << endl
+       << "Usage: ornaments <CMD> [arguments] .." << endl << endl
        << "Where <CMD> can be one of:" << endl << endl
-       << "    index         Builds a kallisto index "<< endl
-       << "    quant         Runs the quantification algorithm " << endl
-       << "    bus           Generate BUS files for single-cell data " << endl
-       << "    pseudo        Runs the pseudoalignment step " << endl
-       << "    merge         Merges several batch runs " << endl
-       << "    h5dump        Converts HDF5-formatted results to plaintext" << endl
-       << "    inspect       Inspects and gives information about an index" << endl 
-       << "    version       Prints version information" << endl
+       << "    index         Builds an ornaments index "<< endl
+       << "    quant         Runs the quantification algorithm and returns read counts over heterozygous variant sites" << endl
        << "    cite          Prints citation information" << endl << endl
-       << "Running kallisto <CMD> without arguments prints usage information for <CMD>"<< endl << endl;
+       << "Running ornaments <CMD> without arguments prints usage information for <CMD>"<< endl << endl;
 }
 
 void usageBus() {
@@ -1757,14 +1751,13 @@ void usageBus() {
 }
 
 void usageIndex() {
-  cout << "kallisto " << KALLISTO_VERSION << endl
-       << "Builds a kallisto index" << endl << endl
-       << "Usage: kallisto index [arguments] FASTA-files" << endl << endl
-       << "Required argument:" << endl
-       << "-i, --index=STRING          Filename for the kallisto index to be constructed " << endl << endl
-       << "Optional argument:" << endl
-       << "-k, --kmer-size=INT         k-mer (odd) length (default: 31, max value: " << (Kmer::MAX_K-1) << ")" << endl
-       << "    --make-unique           Replace repeated target names with unique names" << endl
+  cout << "ornaments, using kallisto version " << KALLISTO_VERSION << endl
+       << "Builds an ornaments index" << endl << endl
+       << "Usage: build/src/ornaments index -i <file_index> [-k <k>] <file_fasta>" << endl << endl
+       << "Arguments:" << endl
+       << "-i <file_index>:	output file that contains an ornament index" << endl
+       << "<file_fasta>:		input file for personalized transcriptome (ornament personalized transcriptome to run ornaments, normal reference transcriptome to run kallisto)" << endl
+       << "-k <k>:		        k-mer length to be used for index construction, default = 31"
        << endl;
 
 }
@@ -1790,39 +1783,25 @@ void usageInspect() {
 void usageEM(bool valid_input = true) {
   if (valid_input) {
 
-  cout << "kallisto " << KALLISTO_VERSION << endl
-       << "Computes equivalence classes for reads and quantifies abundances" << endl << endl;
+  cout << "ornaments, using kallisto version " << KALLISTO_VERSION << endl
+       << "Computes equivalence classes for reads, quantifies abundances, and returns read counts over heterozygous variant sites" << endl << endl;
   }
-  //      "----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|"
-  cout << "Usage: kallisto quant [arguments] FASTQ-files" << endl << endl
-       << "Required arguments:" << endl
-       << "-i, --index=STRING            Filename for the kallisto index to be used for" << endl
-       << "                              quantification" << endl
-       << "-o, --output-dir=STRING       Directory to write output to" << endl << endl
-       << "Optional arguments:" << endl
-       << "    --bias                    Perform sequence based bias correction" << endl
-       << "-b, --bootstrap-samples=INT   Number of bootstrap samples (default: 0)" << endl
-       << "    --seed=INT                Seed for the bootstrap sampling (default: 42)" << endl
-       << "    --plaintext               Output plaintext instead of HDF5" << endl
-       << "    --fusion                  Search for fusions for Pizzly" << endl
-       << "    --single                  Quantify single-end reads" << endl
-       << "    --single-overhang         Include reads where unobserved rest of fragment is" << endl
-       << "                              predicted to lie outside a transcript" << endl
-       << "    --fr-stranded             Strand specific reads, first read forward" << endl
-       << "    --rf-stranded             Strand specific reads, first read reverse" << endl
-       << "-l, --fragment-length=DOUBLE  Estimated average fragment length" << endl
-       << "-s, --sd=DOUBLE               Estimated standard deviation of fragment length" << endl
-       << "                              (default: -l, -s values are estimated from paired" << endl
-       << "                               end data, but are required when using --single)" << endl
-       << "-t, --threads=INT             Number of threads to use (default: 1)" << endl
-       << "    --pseudobam               Save pseudoalignments to transcriptome to BAM file" << endl
-       << "    --genomebam               Project pseudoalignments to genome sorted BAM file" << endl
-       << "-g, --gtf                     GTF file for transcriptome information" << endl
-       << "                              (required for --genomebam)" << endl
-       << "-c, --chromosomes             Tab separated file with chromosome names and lengths" << endl
-       << "                              (optional for --genomebam, but recommended)" << endl
-       << "    --verbose                 Print out progress information every 1M proccessed reads" << endl;
-
+  cout << "Usage:       ornaments quant -i <file_orn_ind> -o <dir_out> --vcf <file_vcf> --sample <SAMPLE> <file_fastq1> <file_fastq2>" << endl
+       << "Usage:       ornaments quant -i <file_orn_ind> -o <dir_out> --vcf <file_vcf> --sample <SAMPLE> --single -l <d_l> -s <d_s> <file_fastq>" << endl << endl
+       << "Arguments:" << endl
+       << "-i <file_orn_ind>:	    input file for ornament index " << endl
+       << "-o <dir_out>: 		    two output files will be added to the <dir_out> folder " << endl
+       <<	"                               `allele_counts.txt` for expected allele specific-read counts" << endl
+       <<	"                               `tpms.txt` for TPM estimates for transcripts " << endl
+       << "--vcf <file_vcf>:	    sorted.transcriptome.vcf the variant information, " << endl
+       << "--sample <SAMPLE>: 	    one desired sample from the VCF file, i.e. \"HG00405\" which should be contained in <file_vcf>" << endl
+       << "<file_fastq1>:		    FASTQ file 1 in paired-end reads" << endl
+       << "<file_fastq2>: 		    FASTQ file 2 in paired-end reads" << endl
+       << "--single:		    flag for single-end reads" << endl
+       << "-l <d_l>: 		    fragment length mean for single-end reads" << endl
+       << "-s <d_s>: 		    standard deviation for single-end reads" << endl
+       << "<file_fastq>:		    FASTQ file for single-end reads" << endl
+       << "-t, --threads=INT           Number of threads to use (default: 1)" << endl;
 }
 
 void usagePseudo(bool valid_input = true) {

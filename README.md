@@ -64,7 +64,7 @@ conda install -c conda-forge biopython
 conda install -c bioconda gtfparse
 ```
 
-[Comment]: I think biopython and gtfparse are for the helper scripts not for the main Ornaments? Then, I suggest you say that above.
+These packages are not needed to run _ornaments_ itself, but are needed for the helper scripts described below to prepare the inputs to _ornaments_.
 
 ## Preparation of variants
 
@@ -126,18 +126,18 @@ Usage: python3 merge_transcriptome_vcfs.py -i <file_list> -o <file_vcf> -s <file
 -i <file_list>: 	input file listing the names of the files to be merged, with one file name in each line
 -o <file_vcf>: 		output merged VCF file for variants in transcriptome coordinates
 -s <file_sample>: 	input file with a list of sample names, one sample name in each line, if processing multiple samples,
-			or the sample name in the VCF file, if processing one sample
+						or the sample name in the VCF file, if processing one sample
 ```
 
-[Comment]: When you say [the sample name in the VCF file] above in the -s option, is it a name used inside file_list? So each file in file_list contains one or more sample data? 
+This script expects all files in `<file_list>` to be in VCF format, and each file should have data for all samples in `<file_sample>`.
 
-[Comment]: It sounds like this script actually performs two tasks: 1) merging multiple files, 2) extracting heterozygous sites. The item 2) should be done even for a single file case, correct? This part is unclear.
+Only variants that are heterozygous in at least one of the samples in `<file_sample>` will be retained. In the examples folder, we consider only one chromosome, but we should still run this script to remove variants which are not heterozygous in at least one sample.
 
-[Comment]: I thought there used to be an example usage code block. Could you put it back? You can do this just for a single sample case.
-
-Only variants that are heterozygous in at least one of the samples in `<file_sample>` will be retained. 
-
-In the examples folder, we consider only one chromosome, so running this step is not necessary.
+Example usage:
+```
+echo "examples/truncated_chr1.transcriptome.vcf" > file_list.txt
+python merge_transcriptome_vcfs.py -i file_list.txt -o examples/transcriptome.vcf -s HG00405
+```
 
 ### Sorting (if variants are not sorted in transcriptome variant files)
 If variants in the VCF file you started with are already sorted, you can skip this part. 
@@ -146,7 +146,7 @@ in the transcriptome variant file, to sort the transcriptome VCF, taken from
 [here](https://www.biostars.org/p/299659/).
 
 ```
-cat transcriptome.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1 -k2,2n"}' > sorted.transcriptome.vcf
+cat examples/transcriptome.vcf | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1 -k2,2n"}' > examples/sorted.transcriptome.vcf
 ```
 
 You should replace `transcriptome.vcf` with your file name. 
@@ -159,14 +159,12 @@ Usage: python3 create_personalized_transcriptome.py -f <file_tr> -v <file_vcf> -
 
 -f <file_tr>: 		input reference transcriptome file
 -v <file_vcf>:		input VCF file for variants in transcriptome coordinates
--t <opt>: 		set <opt> to ornaments for ornament personalized transcriptome or 
-			to diploid for diploid personalized transcriptome
+-t <opt>: 			set <opt> to ornaments for ornament personalized transcriptome or 
+						to diploid for diploid personalized transcriptome
 -o <file_ptr>:		output file containing ornament or diploid personalized transcriptome
--s <SAMPLE>: 		the sample name in the VCF file, i.e. "HG00405"
+-s <SAMPLE>: 		one desired sample from the VCF file, i.e. "HG00405" which should be contained in <file_vcf>
 -k <kmer_len>: 		the length of kmer to use for ornament transcriptome construction, default = 31
 ```
-
-[Comment]: About the option -s `<SAMPLE>`, is it one sample out of many samples in `<file_vcf>`? i.e., is the SAMPLE name coming from inside of file_vcf?
 
 Diploid personalized transcriptome contains left (suffixed by `_L`) and right 
 (suffixed by `_R`) alleles for each transcript, 
@@ -212,12 +210,12 @@ Usage: build/src/ornaments index -i <file_index> -k <k> <file_fasta>
 
 Arguments:
 -i <file_index>:	output file that contains an ornament index 
-<file_fasta>:		input file for personalized transcriptome
--k <k>:			k-mer length to be used for index construction, default = 31
+<file_fasta>:		input file for personalized transcriptome (ornament personalized transcriptome to run ornaments, normal reference transcriptome to run kallisto)
+-k <k>:				k-mer length to be used for index construction, default = 31
 
 ```
 
-[Comment]: Can `<file_index>` be either ornament per. transcriptome (to run ornments) or ref transcriptome (to run kallisto)? It sounds that way in the previous section. If that's the case, this needs to be explained in the arguments in the code block. But, does ornaments index recognize orn vs ref transcriptome automatically, or do you have to use a specific file name for each type? 
+Note that ornaments index can automatically detect whether or not the input `<file_fasta>` is an ornament personalized transcriptome or a normal reference transcriptome. If the input if a normal reference transcriptome, then kallisto will be run instead.
 
 Example usage to construct an ornament index:
 
@@ -235,33 +233,40 @@ build/src/ornaments quant -i <file_orn_ind> -o <dir_out> --vcf <file_vcf> --samp
 Arguments:
 -i <file_orn_ind>:	input file for ornament index 
 -o <dir_out>: 		two output files will be added to the <dir_out> folder 
-			`allele_counts.txt` for expected allele specific-read counts 
-			`tpms.txt` for TPM estimates for transcripts 
+						`allele_counts.txt` for expected allele specific-read counts 
+						`tpms.txt` for TPM estimates for transcripts 
 --vcf <file_vcf>:	sorted.transcriptome.vcf the variant information, 
---sample <SAMPLE>: 	sample name in the population data for quantification, i.e. "HG00405"
+--sample <SAMPLE>: 	one desired sample from the VCF file, i.e. "HG00405" which should be contained in <file_vcf>
 <file_fastq1>:		FASTQ file 1 in paired-end reads 
 <file_fastq2>: 		FASTQ file 2 in paired-end reads
---single:		flag for single-end reads 
--l <d_l>: 		fragment length mean for single-end reads
--s <d_s>: 		standard deviation for single-end reads
+--single:			flag for single-end reads 
+-l <d_l>: 			fragment length mean for single-end reads
+-s <d_s>: 			standard deviation for single-end reads
 <file_fastq>:		FASTQ file for single-end reads
 ```
-
-[Comment]: What is the relationship between `<file_vcf>` and `<SAMPLE>`? Is SAMPLE one of the samples in file_vcf? Do you actually use the variant information in this vcf? i.e., shouldn't ornament personalized transcriptome (input to index) be enough?
 
 Example usage to quantify with paired-end reads for a given `SAMPLE`:
 
 ```
-build/src/ornaments quant -i examples/HG00405.ornament.index -o output_dir \
---vcf examples/sorted.transcriptome.vcf --sample HG00405 examples/SAMPLE_1.fastq examples/SAMPLE_2.fastq
+build/src/ornaments quant \
+-i examples/HG00405.ornament.index \
+-o output_dir \
+--vcf examples/sorted.transcriptome.vcf \
+--sample HG00405 \
+examples/SAMPLE_1.fastq examples/SAMPLE_2.fastq
 ```
 
 Example usage to quantify with single-end reads for a given `SAMPLE`: 
 ```
-build/src/ornaments quant -i examples/HG00405.ornament.index -o output_dir \
---vcf examples/sorted.transcriptome.vcf --sample HG00405 --single -l 150 -s 25 examples/SAMPLE.fastq
+build/src/ornaments quant \
+-i examples/HG00405.ornament.index \
+-o output_dir \
+--vcf examples/sorted.transcriptome.vcf \
+--sample HG00405 \
+--single \
+-l 150 \
+-s 25 \
+examples/SAMPLE.fastq
 ```
-
-[comment]: When I run build/src/ornaments without any options, I get kallisto's usage. Once we finalize this document, this should be replaced with the Usage for Ornaments.
 
 Ornaments is built as an addition to kallisto. All credit for the kallisto software is given to its original authors.
