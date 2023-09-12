@@ -204,7 +204,7 @@ def main(genome_vcf_file, gtf_file, transcriptome_file, output_file, coordinate_
   gtf_df = gtf_df.drop(['source', 'score', 'frame', 'gene_id', 'gene_type', 'gene_name', \
         'havana_gene', 'transcript_type', 'transcript_support_level', \
         'tag', 'level', 'transcript_name', 'havana_transcript', 'exon_id', \
-        'protein_id', 'ccdsid', 'ont'], axis=1)
+        'ont'], axis=1)
   gtf_df = gtf_df[(gtf_df.feature == 'exon') | (gtf_df.feature == 'transcript')]
   ########################################################################################################################
   #######  Create transcript to exon lookup, which is a map from a transcript to its constituent exons ###########

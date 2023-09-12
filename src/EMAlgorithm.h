@@ -475,7 +475,6 @@ struct EMAlgorithm {
     }
 
     time(&end);
-    std::cerr << "EM actually took " << difftime(end, start) << " seconds." << std::endl;
     std::cerr << "EM Algorithm took " << num_iterations << " rounds" << std::endl;
 
 

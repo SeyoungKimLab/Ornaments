@@ -1,0 +1,41 @@
+name: test
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=main
+  - _openmp_mutex=5.1=1_gnu
+  - biopython=1.78=py36h7f8727e_0
+  - ca-certificates=2023.08.22=h06a4308_0
+  - certifi=2021.5.30=py36h06a4308_0
+  - gtfparse=1.2.1=pyh864c0ab_0
+  - ld_impl_linux-64=2.38=h1181459_1
+  - libblas=3.9.0=15_linux64_openblas
+  - libcblas=3.9.0=15_linux64_openblas
+  - libffi=3.3=he6710b0_2
+  - libgcc-ng=11.2.0=h1234567_1
+  - libgfortran-ng=13.2.0=h69a702a_0
+  - libgfortran5=13.2.0=ha4646dd_0
+  - libgomp=11.2.0=h1234567_1
+  - liblapack=3.9.0=15_linux64_openblas
+  - libopenblas=0.3.20=pthreads_h78a6416_0
+  - libstdcxx-ng=11.2.0=h1234567_1
+  - ncurses=6.4=h6a678d5_0
+  - numpy=1.19.5=py36hfc0c790_2
+  - openssl=1.1.1w=h7f8727e_0
+  - pandas=1.1.5=py36ha9443f7_0
+  - pip=21.2.2=py36h06a4308_0
+  - python=3.6.10=h7579374_2
+  - python-dateutil=2.8.2=pyhd3eb1b0_0
+  - python_abi=3.6=2_cp36m
+  - pytz=2021.3=pyhd3eb1b0_0
+  - readline=8.2=h5eee18b_0
+  - setuptools=58.0.4=py36h06a4308_0
+  - six=1.16.0=pyhd3eb1b0_1
+  - sqlite=3.41.2=h5eee18b_0
+  - tk=8.6.12=h1ccaba5_0
+  - wheel=0.37.1=pyhd3eb1b0_0
+  - xz=5.4.2=h5eee18b_0
+  - zlib=1.2.13=h5eee18b_0
+prefix: /root/miniconda3/envs/test
