@@ -58,10 +58,10 @@ For convenience, we have included a set of example files in the _examples_ folde
 In order to run Ornaments, you need to have [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) installed. Once you have installed conda, install the [biopython](https://anaconda.org/conda-forge/biopython) and [gtfparse](https://anaconda.org/bioconda/gtfparse) packages:
 
 ```
-conda create --name ornaments
+conda create --name ornaments python=3.6.10
 conda activate ornaments
-conda install -c conda-forge biopython
-conda install -c bioconda gtfparse
+conda install -c bioconda gtfparse=1.2.1
+conda install -c conda-forge biopython=1.78
 ```
 
 These packages are not needed to run Ornaments itself, but are needed for the helper scripts described below to prepare the inputs to Ornaments.
@@ -180,8 +180,8 @@ python3 create_personalized_transcriptome.py \
 -f examples/truncated_transcriptome.fasta \
 -v examples/truncated_chr1.transcriptome.vcf \
 -t ornament \
--o SAMPLE.ornament.fa \
--s SAMPLE
+-o HG00405.ornament.fa \
+-s HG00405
 ```
 
 
@@ -191,8 +191,8 @@ python3 create_personalized_transcriptome.py \
 -f examples/truncated_transcriptome.fasta \
 -v examples/truncated_chr1.transcriptome.vcf \
 -t diploid \
--o SAMPLE.diploid.fa \
--s SAMPLE
+-o HG00405.diploid.fa \
+-s HG00405
 ```
 
 
@@ -222,7 +222,7 @@ it behaves the same as kallisto.
 Example usage to construct an ornament index:
 
 ```
-build/src/ornaments index -i SAMPLE.ornament.index SAMPLE.ornament.fa
+build/src/ornaments index -i HG00405.ornament.index HG00405.ornament.fa
 ```
 
 ### quant
@@ -237,6 +237,7 @@ Arguments:
 -o <dir_out>: 		two output files will be added to the <dir_out> folder 
                         `allele_counts.txt` for expected allele specific-read counts 
                         `tpms.txt` for TPM estimates for transcripts 
+                        `thetas.txt` for probability estimates for transcripts (# num reads / # total reads)
 --vcf <file_vcf>:	input VCF file for transcriptome variants in transcriptomic coordinates that are sorted in each transcript
 --sample <SAMPLE>: 	a sample name from the VCF file <file_vcf>
 <file_fastq1>:		FASTQ file 1 in paired-end reads 
@@ -247,7 +248,7 @@ Arguments:
 <file_fastq>:		FASTQ file for single-end reads
 ```
 
-Example usage to quantify with paired-end reads for a given `SAMPLE`:
+Example usage to quantify with paired-end reads for sample `HG00405`:
 
 ```
 build/src/ornaments quant \
@@ -255,10 +256,10 @@ build/src/ornaments quant \
 -o output_dir \
 --vcf examples/sorted.transcriptome.vcf \
 --sample HG00405 \
-examples/SAMPLE_1.fastq examples/SAMPLE_2.fastq
+examples/HG00405_1.fastq examples/HG00405_2.fastq
 ```
 
-Example usage to quantify with single-end reads for a given `SAMPLE`: 
+Example usage to quantify with single-end reads for sample `HG00405`: 
 ```
 build/src/ornaments quant \
 -i examples/HG00405.ornament.index \
@@ -268,7 +269,7 @@ build/src/ornaments quant \
 --single \
 -l 150 \
 -s 25 \
-examples/SAMPLE.fastq
+examples/HG00405.fastq
 ```
 
 Ornaments is built as an addition to kallisto. All credit for the kallisto software is given to its original authors.

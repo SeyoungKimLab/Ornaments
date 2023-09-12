@@ -1793,6 +1793,7 @@ void usageEM(bool valid_input = true) {
        << "-o <dir_out>: 		    two output files will be added to the <dir_out> folder " << endl
        <<	"                               `allele_counts.txt` for expected allele specific-read counts" << endl
        <<	"                               `tpms.txt` for TPM estimates for transcripts " << endl
+       <<	"                               `thetas.txt` for probability estimates for transcripts (# mapped reads / # total reads)" << endl
        << "--vcf <file_vcf>:	    sorted.transcriptome.vcf the variant information, " << endl
        << "--sample <SAMPLE>: 	    one desired sample from the VCF file, i.e. \"HG00405\" which should be contained in <file_vcf>" << endl
        << "<file_fastq1>:		    FASTQ file 1 in paired-end reads" << endl
