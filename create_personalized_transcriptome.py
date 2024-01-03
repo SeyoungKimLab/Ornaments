@@ -6,11 +6,6 @@ from itertools import chain, combinations
 from enum import Enum
 
 class Utils:
-  # Apply homozygous alternative, transform coordinates of remaining heterozygous variants
-  # @classmethod
-  # def apply_variants(cls, seq, edges, snps, ins, dels, rem_snps, rem_ins, rem_dels):
-  #   alkjasldk
-
   @classmethod
   def is_het(cls, gt):
     return gt == '0|1' or gt == '1|0' or gt == '0/1' or gt == '1/0'
@@ -40,9 +35,6 @@ class Utils:
   @classmethod
   def set_overlap(cls, range1, range2):
     return max(0, min(range1[1], range2[1]) - max(range1[0], range2[0]) + 1)
-
-  # @classmethod
-  # def ntuples_helper(cls, het_vars_inds)
 
   @classmethod
   def transcript_generator(cls, file):
@@ -76,9 +68,7 @@ def calculate_extract_for_transcript(snp_list, ins_dict={}, del_dict={}, k=31):
   i = 0
   curr_run = 1
   added_bp = 0
-  # print(snp_list, ins_dict, del_dict)
   indel_dict = {**ins_dict,  **del_dict}
-  # Edit: Adding in indels now. Assuming that an indel and a snp aren't on the same position.
   indel_list = list(indel_dict.keys())
   indel_positions = set(indel_list)
   snp_list = snp_list + indel_list
@@ -102,7 +92,6 @@ def calculate_extract_for_transcript(snp_list, ins_dict={}, del_dict={}, k=31):
       grouped_snps = snp_list[i-curr_run+1:i+1] 
       curr_run = 1
       i += 1
-      # num_seq += (2 ** len(grouped_snps))
       snp_partitions.append(grouped_snps)
       ranges.append((grouped_snps[0] - k, grouped_snps[-1] + k + active_bonus))
       active_bonus = 0
@@ -121,7 +110,6 @@ def contained_snps_and_indels(snps, ins, dels, range_, lbound):
   for i in ins:
     if i >= range_[0] and i <= range_[1]:
       ret_ins[i - lbound] = ins[i]
-      # ret_ins.append(i)
 
   for d in dels:
     if d >= range_[0] and d <= range_[1]:
@@ -147,7 +135,6 @@ def contained_snps(snps, range_, indel_dict, bonus=0):
           l, r = s, s + np.max(np.abs(indel_dict[s]))
           tup = (l, r)
           # If there is an overlap in the range, then append this snp
-          # if r >= range_[0] and r <= range_[1]:
           if Utils.set_overlap((l + 1, r), range_) > 0:
             to_ret.append(s)
   return to_ret
@@ -210,7 +197,6 @@ def get_bonus(current_snps, indel_positions, indel_dict, i):
           l, r = active_indel_stack[-1]
           ovlp = max(0, min(r, curr_real_range[1]) - max(l, curr_real_range[0]) + 1)
           if ovlp != 0:
-            # print('NANI????')
             pre_active_bonus -= (ovlp - 1)
 
         pre_active_bonus += np.max(np.abs(indel_dict[curr_snp]))
@@ -220,23 +206,17 @@ def get_bonus(current_snps, indel_positions, indel_dict, i):
   return pre_active_bonus
 
 def calculate_subsequences_new(sequence, o_snps, ins_dict={}, del_dict={}, k=31):
-  # print('CALCULATE SUBSEQ: ', indel_dict)
-  # print('IN SUBSEQ1, SNPS: ', o_snps)
   indel_dict = {**ins_dict,  **del_dict}
   indel_positions = set(list(indel_dict.keys()))
   snps = o_snps + list(indel_dict.keys())
   snps = sorted(snps)
   start_shift = 0
   # raise issue if variant doesn't match reference? just don't include it in vcf?
-  # print(snps, indel_positions)
-  # print('IN SUBSEQ2, SNPS: ', snps)
   if len(snps) == 1: # REWORK IN CASE THIS IS AN INDEL
     start_range, end_range = snps[0] - k + 1, snps[0] + k - 1
     if snps[0] in indel_dict and type(indel_dict[snps[0]][0]) is int: # deletion
       start_range += 1
       end_range += np.max(np.abs(indel_dict[snps[0]]))
-      # print('HERE ABHI')
-      # print(start_range, end_range, len(sequence[start_range:end_range+1]), len(sequence))
     elif snps[0] in indel_dict:
       start_range += 1
 
@@ -263,17 +243,11 @@ def calculate_subsequences_new(sequence, o_snps, ins_dict={}, del_dict={}, k=31)
   # Actually, how do we deal with overlaps in general?
   for i in range(snps[0] - k + 2, snps[-1] + 1):
     pre_active_bonus = get_bonus(current_snps, indel_positions, indel_dict, i)
-    # new_snps = contained_snps(snps, (i, i + k + pre_active_bonus - 1), indel_dict, pre_active_bonus)
     test_snps = contained_snps(snps, (i, i + k - 1), indel_dict, 0)
     # If there are any new indels in here, and using the active bonus from them would include
     # even more snps, then those snps are contained within the deletion
     curr_active_bonus = get_bonus(test_snps, indel_positions, indel_dict, i)
     new_snps = contained_snps(snps, (i, i + k + curr_active_bonus - 1), indel_dict, curr_active_bonus)
-    # print('Checking range: ', (i, i + k + pre_active_bonus - 1), 'bonus', pre_active_bonus)
-    # new_snps = new_new_snps
-
-    # print(i, pre_active_bonus, current_snps, new_snps)
-    # print((i, i + k + pre_active_bonus - 1), current_snps, new_snps)
     if new_snps != current_snps:
       end_range = (i + k - 2) + pre_active_bonus
     
@@ -285,7 +259,6 @@ def calculate_subsequences_new(sequence, o_snps, ins_dict={}, del_dict={}, k=31)
       all_in = True
       check_contained = contained_snps(snps, (start_range, end_range), indel_dict, pre_active_bonus)
       for curr_snp in current_snps:
-        # if curr_snp < start_range or curr_snp > end_range:
         if curr_snp not in check_contained:
           all_in = False
     
@@ -294,7 +267,6 @@ def calculate_subsequences_new(sequence, o_snps, ins_dict={}, del_dict={}, k=31)
           ranges.append((start_range, end_range))
           snps_for_ranges.append([c for c in current_snps if c not in indel_dict])
           indels_for_ranges.append({c: indel_dict[c] for c in current_snps if c in indel_dict})
-        # print('ADDING', end_range, pre_active_bonus)
 
       start_range = i
     current_snps = new_snps
@@ -310,10 +282,8 @@ def calculate_subsequences_new(sequence, o_snps, ins_dict={}, del_dict={}, k=31)
     indels_for_ranges.append({c: indel_dict[c] for c in current_snps if c in indel_dict})
 
   return consolidate_ranges(ranges, snps_for_ranges, indels_for_ranges, sequence)
-  # return ranges, snps_for_ranges, indels_for_ranges, s
 
 def snps_inds_are_in_range(snps, indels, range_):
-  # print('Are ', snps, indels, 'in range', range_)
   to_ret = True
   for s in snps:
     if s < range_[0] or s > range_[1]:
@@ -321,10 +291,6 @@ def snps_inds_are_in_range(snps, indels, range_):
   for i in indels:
     if i < range_[0] or i >= range_[1]:
       to_ret = False
-  # if to_ret:
-  #   print('True')
-  # else:
-  #   print('False')
   return to_ret
 
 # Ranges are sorted
@@ -339,7 +305,6 @@ def consolidate_ranges(ranges, snps_for_ranges, indels_for_ranges, sequence):
   i = 0
   cons_last = False
   while i < len(ranges) - 1:
-  # for i in range(len(ranges) - 1):
     cl, cr = ranges[i]
     nl, nr = ranges[i+1]
     ns, ni = snps_for_ranges[i+1], indels_for_ranges[i+1]
@@ -348,7 +313,6 @@ def consolidate_ranges(ranges, snps_for_ranges, indels_for_ranges, sequence):
       new_ranges.append((min(nl, cl), max(nr, cr)))
       new_snps.append(list(set(cs) | set(ns)))
       new_indels.append({**ci, **ni})
-      # print('NEED TO CONSOLIDATE THIS BITCH')
       if i == len(ranges) - 2:
         cons_last = False
       else:
@@ -370,8 +334,6 @@ def consolidate_ranges(ranges, snps_for_ranges, indels_for_ranges, sequence):
 
 
 def calculate_subsequences(sequence, o_snps, indel_dict={}, k=31):
-  # print('CALCULATE SUBSEQ: ', indel_dict)
-  # print('IN SUBSEQ1, SNPS: ', o_snps)
   indel_positions = set(list(indel_dict.keys()))
   snps = o_snps + list(indel_dict.keys())
   snps = sorted(snps)
@@ -502,7 +464,6 @@ def get_haplotype_for_sample_p(tsnps, snps, samples):
   return list(curr_combos)
 
 def get_haplotype_for_sample_up(tsnps, snps, samples):
-  # print(tsnps)
   curr_combos = set([])
   for s in snps:
     tsnps[s] = tsnps[s].split('\t')
@@ -634,7 +595,6 @@ def apply_dem_snps_and_indels_and_edges(seq, snpDict, insDict, delDict, edgeDict
         trans_ind = transformed_coords_dels[b]
         if trans_ind > d + len_del:
           transformed_coords_dels[b] -= len_del
-      # elif transformed_coords_del[j] < ind and transformed_coords_del[j] + delDict[j] > ind:
 
   for s in snpDict:
     ind = s
@@ -694,14 +654,11 @@ def get_ornament_name(indexer, combo_snps, combo_ins, combo_dels, combo_edges, l
   for s in combo_snps:
     if s in homo_snps or s in squelched_snps:
       continue
-    # print(indexer.get_snp(s + lbound, combo_snps[s]))
     t = indexer.get_snp(s + lbound, combo_snps[s])
     if t not in grouper:
       grouper[t] = []
     grouper[t].append(s + lbound)
     num_variants += 1
-      # grouper['r'].append(s + lbound)
-      # to_ret += (str(s + lbound) + ',')
   for i in combo_ins:
     if i in squelched_ins:
       continue
@@ -710,8 +667,6 @@ def get_ornament_name(indexer, combo_snps, combo_ins, combo_dels, combo_edges, l
       grouper[t] = []
     grouper[t].append(i + lbound)
     num_variants += 1
-    # if indexer.get_ins(i + lbound, combo_ins[i]) == 'r':
-    #   to_ret += (str(i + lbound) + ',')
   for d in combo_dels:
     if d in squelched_dels:
       continue
@@ -863,7 +818,6 @@ def apply_snps_indels(
               ltrim = max(ltrim, ind + 2 - k)
               ltrim_dels.add(d)
 
-          # TODO: What the fuck is going on with homo alt indels bro
           ornament_name_preview, num_variants = get_ornament_name(
             indexer,
             combo_snps,
@@ -922,7 +876,6 @@ def apply_snps_indels(
 
 # Absence in the set right now can either mean squelched or refsnp. Separate these two out,
 # and we have a complete implementation that applies variants (that are compatible) together
-# Next step: trimmer. Is this necessary if we're taking the intersection within variants?
 
 def apply_snps(kmer, tsnps, samples, phased, list_of_snps, list_of_indels={}):
   # print(kmer)
@@ -1033,9 +986,6 @@ def apply_all_delins(ref, insDict, delDict):
   skip = set([])
   skip_i = set([])
   for d in list(delDict.keys()):
-    # if d in skip:
-    #   continue
-
     len_del = abs(delDict[d])
     ind = transformed_coords_del[d]
     to_ret = to_ret[:ind+1] + '-' * len_del + to_ret[ind+len_del+1:]
@@ -1057,14 +1007,9 @@ def apply_all_delins(ref, insDict, delDict):
           skip.add(j)
       elif transformed_coords_del[j] < ind and transformed_coords_del[j] + delDict[j] > ind:
         skip.add(j)
-        # if transformed_coords_del[j] <= ind + len_del:
-        #   skip.add(j)
-    # to_ret = to_ret[:ind+1] + '-' * len_del + to_ret[ind+len_del+1:]
     to_ret = to_ret.replace('-','')
 
   for i in insDict:
-    # if i in skip_i:
-    #   continue
     ind = transformed_coords_ins[i]
     len_ins = len(insDict[i]) - 1
     to_ret = to_ret[:ind+1] + insDict[i][1:] + to_ret[ind+1:]
@@ -1091,8 +1036,6 @@ def shift(ind, shift_amt, snps, ins, dels):
 # Pre: Segregated variants, applying some of the variants should never overlap with others
 # These variants actually can overlap with others. What do we do about it? Delete out?
 # Post: Translate all the variants that aren't being applied. Impute in homo alt
-# Need to think about how to properly do this
-# Need to just return the intermediate string no? Cause coordinates for other don't change at all
 def apply_some_delins(
     ref, insDict, delDict, \
     otherLeftSnps={}, otherLeftIns={}, otherLeftDels={}, \
@@ -1183,9 +1126,6 @@ def load_transcriptome_snps_diploid(input_tvcf, sample):
           continue
       elif len(genotype) == 1 and genotype == '0':
           continue
-      # if tid == 'ENST00000469403.1':
-      # if tid == 'ENST00000448958.2' and pos == 577:
-      #     print(genotype)
       if len(genotype) == 3:
         left = ref if genotype[0] == '0' else alt
         right = ref if genotype[2] == '0' else alt
@@ -1254,7 +1194,6 @@ def load_transcriptome_snps_ornaments(input_tvcf, samples=None):
         transcriptome_snps[tid] = {}
       
       # THESE ARE ZERO INDEXED
-      # transcriptome_snps[tid][pos-1] = (ref, alt, is_homo_alt, is_homo_ref, gts, len(ref) == len(alt))
       transcriptome_snps[tid][pos-1] = (ref, alt, is_homo_alt, is_homo_ref, "\t".join(gts), len(ref) == len(alt))
   return transcriptome_snps, num_processed, num_skipped, inds
 
@@ -1262,6 +1201,7 @@ def load_transcriptome_snps_phased_ornament(input_tvcf, samples=None):
   transcriptome_snps = {}
   num_skipped = 0
   num_processed = 0
+  num_snps, num_insertions, num_deletions = 0, 0, 0
   # load in the left and the right information for the sample that we are interested in
   with open(input_tvcf) as tvcf:
     start = False
@@ -1290,9 +1230,9 @@ def load_transcriptome_snps_phased_ornament(input_tvcf, samples=None):
           is_homo_alt = False
         if gt != '0|0' and gt != '0' and gt != '0/0':
           is_homo_ref = False
+
       if is_homo_ref:
         continue
-      
       if tid not in transcriptome_snps:
         transcriptome_snps[tid] = TranscriptVariantList(True, tid)
       
@@ -1306,6 +1246,14 @@ def load_transcriptome_snps_phased_ornament(input_tvcf, samples=None):
           gts,
           len(ref) == len(alt) or alt.isdigit())
 
+      if len(ref) == len(alt):
+          num_snps += 1
+      elif len(ref) > len(alt):
+          num_deletions += 1
+      elif len(ref) < len(alt):
+          num_insertions += 1
+
+    print(f'Using {num_snps} heterozygous SNP(s), {num_insertions} heterozygous insertion(s), and {num_deletions} heterozygous deletion(s)')
     return transcriptome_snps, num_processed, num_skipped
 
 class Printer:
@@ -1389,12 +1337,6 @@ class VariantToVCF:
     else:
       return self.target_to_dels[pos][target]
 
-  # def coordinates(self, het_snps, het_ins, het_dels, lbound):
-  #   a, b, c, d, e, f = 1, 1, 1, 1, 1, 1
-  #   for s in het_snps:
-  #     spos = s + lbound
-  #     for i in het_ins:
-
 class Haplotype(Enum):
   left = 0
   right = 1
@@ -1432,7 +1374,9 @@ class OrnamentVariant:
     l = self.ref if l == '0' else self.alt
     r = self.ref if r == '0' else self.alt
     return l, r
-    # assert(
+
+  def __repr__(self):
+      return f'{self.ref}, {self.alt}, {self.is_homo_alt}, {self.gt_string}, {self.indel})'
 
 class TranscriptVariantList:
   def __init__(self, phased, tname):
@@ -1569,19 +1513,13 @@ class TranscriptVariantList:
           else:
             indexer.add_snp(pos, ref_allele, 'r')
             indexer.add_snp(pos, alt_allele, 'a_' + str(a_num))
-            # if pos not in snps:
-            #   snps[pos] = []
 
             if al == ref_allele:
               if pos not in snps:
                 snps[pos] = [ref_allele]
-              # if ref_allele not in snps[pos]:
-              #   snps[pos].append(ref_allele)
             else:
               assert(al == alt_allele)
               snps[pos] = [alt_allele]
-              # if alt_allele not in snps[pos]:
-              #   snps[pos].append(alt_allele)
             if var.is_homo_alt:
               assert(len(snps[pos]) == 1)
               homo_alt_snps.add(pos)
@@ -1592,16 +1530,12 @@ class TranscriptVariantList:
             # if pos not in right_ins and pos not in right_dels and r == alt_allele:
             indexer.add_del(pos, 0, 'r')
             indexer.add_del(pos, len(ref_allele) - len(alt_allele), 'a_' + str(a_num))
-            # if pos not in dels:
-            #   dels[pos] = []
             if al == ref_allele:
               if pos not in dels:
                 dels[pos] = [0]
-              # dels[pos].append(0)
             else:
               assert(al == alt_allele)
               dels[pos] = [len(ref_allele) - len(alt_allele)]
-              # dels[pos].append(len(ref_allele) - len(alt_allele))
             if var.is_homo_alt:
               assert(len(dels[pos]) == 1)
               homo_alt_dels.add(pos)
@@ -1609,16 +1543,12 @@ class TranscriptVariantList:
           else:
             indexer.add_ins(pos, ref_allele, 'r')
             indexer.add_ins(pos, alt_allele, 'a_' + str(a_num))
-            # if pos not in ins:
-            #   ins[pos] = []
             if al == ref_allele:
               if pos not in ins:
                 ins[pos] = [ref_allele]
-              # ins[pos].append(ref_allele)
             else:
               assert(al == alt_allele)
               ins[pos] = [alt_allele]
-              # ins[pos].append(alt_allele)
             if var.is_homo_alt:
               assert(len(ins[pos]) == 1)
               homo_alt_ins.add(pos)
@@ -1628,7 +1558,6 @@ class TranscriptVariantList:
     return snps, ins, dels, edges, homo_alt_snps, homo_alt_ins, homo_alt_dels, homo_alt_edges, indexer
 
   # For each variant type, for each position, keep track of all alleles 
-  # {372: ['T'], 4052: ['G'], 4269: ['T'], 5218: ['T', 'C']} {2485: ['CAT']} {2547: [2]} {}
   def get_unphased_ornament_variants(self, ind):
     snps = {}
     ins = {}
@@ -1678,8 +1607,6 @@ class TranscriptVariantList:
               assert(len(snps[pos]) == 1)
               homo_alt_snps.add(pos)
         else:
-          # Temporarily skip indels
-          continue
           # If this is a deletion
           if len(ref_allele) > len(alt_allele):
             # If the deletion was on the left haplotype, add as deletion to left_indels
@@ -1932,24 +1859,6 @@ def write_unphased_ornament_transcriptome(
     tsnps = transcriptome_snps[tname]
     snps, ins, dels, edges, homo_alt_snps, homo_alt_ins, homo_alt_dels, homo_alt_edges, indexer = \
         tsnps.get_unphased_ornament_variants(0)
-    # ins[2485] = ['C'] + ins[2485]
-        # homo_alt_ins -= {2485}
-    # snps[2480] = ['A']
-    # snps[2475] = ['C', 'G', 'A']
-    # homo_alt_snps |= {2480}
-    # indexer.add_snp(2480, 'C', 'r')
-    # indexer.add_snp(2480, 'A', 'a_0')
-    # indexer.add_snp(2475, 'C', 'r')
-    # indexer.add_snp(2475, 'G', 'a_0')
-    # indexer.add_snp(2475, 'A', 'a_1')
-
-
-    # ins[3150] = ['ATGC' * 8]
-    # homo_alt_ins |= {3150}
-    # indexer.add_ins(3150, 'A', 'r')
-    # indexer.add_ins(3150, 'ATGC' * 8, 'a_0')
-    # print(snps, ins, dels, edges)
-    # print(homo_alt_snps, homo_alt_ins, homo_alt_dels, homo_alt_edges)
     homo_alt_imputed_sequence, _, _, _, _, _, _, _ = apply_dem_snps_and_indels_and_edges(
         sequence,
         {s: snps[s][0] for s in snps if s in homo_alt_snps},
@@ -2295,7 +2204,7 @@ def main(tfasta, tvcf, output_type, output_file, samples, coordinates, k):
     tname = tname.split('|')[0]
     transcript_to_sequence[tname] = ref
   print('Finished loading in sequences')
-  print('Loading in transcriptome snps...')
+  print('Loading in transcriptome variants...')
 
   if output_type == 'diploid':
     if ',' in samples:
@@ -2312,7 +2221,7 @@ def main(tfasta, tvcf, output_type, output_file, samples, coordinates, k):
     transcriptome_snps, _, _ = load_transcriptome_snps_phased_ornament(tvcf, current_samples)
     inds = list(range(len(current_samples)))
 
-  print('Finished loading in snps')
+  print('Finished loading in variants')
   print('Writing output ' + output_type + ' transcriptome')
 
   if output_type == 'diploid':
