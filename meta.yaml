@@ -1,0 +1,27 @@
+package:
+  name: ornaments
+  version: "1.0"
+
+source:
+  path: .
+
+requirements:
+  host:
+    - python =3.6.10
+    - cmake
+    - make
+    - gxx_linux-64  # [linux]
+    - clangxx  # [osx]
+  run:
+    - python =3.6.10
+    - gtfparse =1.2.1
+    - biopython =1.78
+
+about:
+  home: "https://github.com/SeyoungKimLab/Ornaments"
+  license: "MIT"
+  summary: "Ornaments for rapid allele-specific expression quantification at heterozygous loci."
+
+extra:
+  maintainers:
+    - "Abhinav Adduri"

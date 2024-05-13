@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import gzip
 import sys
@@ -2201,7 +2203,10 @@ def main(tfasta, tvcf, output_type, output_file, samples, coordinates, k):
   transcript_to_sequence = {}
   print('Loading in transcript sequences...')
   for tname, ref in Utils.transcript_generator(tfasta):
-    tname = tname.split('|')[0]
+    if '|' in tname:
+      tname = tname.split('|')[0]
+    else:
+      tname = tname.split(' ')[0]
     transcript_to_sequence[tname] = ref
   print('Finished loading in sequences')
   print('Loading in transcriptome variants...')

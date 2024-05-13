@@ -1,5 +1,4 @@
-# SCRIPT TO CONVERT THE GENOMIC VCF FILE INTO A TRANSCRIPTOMIC VCF FILE FOR ALL THE SAMPLES
-# CAN OPTIONALLY INTRODUCE FAKE SWITCH ERRORS INTO THE GENOME
+#!/usr/bin/env python
 
 import argparse
 import numpy as np
@@ -16,14 +15,16 @@ from gtfparse import read_gtf
 
 # A genome position can be contained by many transcripts due to alternative splicing. Get all of them
 # Get the transcripts that can be contained in this position
-def get_transcript_containing_pos(chr, pos, chr_to_transcript, n=0):
+def get_transcript_containing_pos(chr, pos, chr_to_transcript, n=0, prepend_chr=True):
   viable_transcripts = []
   if 'chr' in chr:
     chr_to_transcript_obj = chr_to_transcript[chr]
   elif (str(chr) == 'MT'):
     chr_to_transcript_obj = chr_to_transcript['chrM']
-  else:
+  elif prepend_chr:
     chr_to_transcript_obj = chr_to_transcript['chr' + str(chr)]
+  else:
+    chr_to_transcript_obj = chr_to_transcript[chr]
   
   max_end_so_far = -1
   for i in range(max(0, n), len(chr_to_transcript_obj)):
@@ -181,7 +182,7 @@ def truncate_neg(transcript_obj, start_pos, ref, alt):
     prev = e
   return convert_bp_negative(transcript_obj, prev[0])
 
-def main(genome_vcf_file, gtf_file, transcriptome_file, output_file, coordinate_conversion_file):
+def main(genome_vcf_file, gtf_file, transcriptome_file, output_file, coordinate_conversion_file, prepend_chr=True):
   ########################################################################################################################
   #######  Load in command line paramters ###########
   print('Using Genome VCF file:', genome_vcf_file)
@@ -201,10 +202,10 @@ def main(genome_vcf_file, gtf_file, transcriptome_file, output_file, coordinate_
   ########################################################################################################################
   gtf_df = read_gtf(gtf_file)
 
-  gtf_df = gtf_df.drop(['source', 'score', 'frame', 'gene_id', 'gene_type', 'gene_name', \
-        'havana_gene', 'transcript_type', 'transcript_support_level', \
-        'tag', 'level', 'transcript_name', 'havana_transcript', 'exon_id', \
-        'ont'], axis=1)
+  # gtf_df = gtf_df.drop(['source', 'score', 'frame', 'gene_id', 'gene_type', 'gene_name', \
+  #       'havana_gene', 'transcript_type', 'transcript_support_level', \
+  #       'tag', 'level', 'transcript_name', 'havana_transcript', 'exon_id', \
+  #       'ont'], axis=1)
   gtf_df = gtf_df[(gtf_df.feature == 'exon') | (gtf_df.feature == 'transcript')]
   ########################################################################################################################
   #######  Create transcript to exon lookup, which is a map from a transcript to its constituent exons ###########
@@ -325,9 +326,9 @@ def main(genome_vcf_file, gtf_file, transcriptome_file, output_file, coordinate_
               transcript_list = []
               transcripts_ends = []
               # Need to add a reset button for curr start
-              curr_start, transcripts = get_transcript_containing_pos(chr, gpos, chr_to_transcript, curr_start)
+              curr_start, transcripts = get_transcript_containing_pos(chr, gpos, chr_to_transcript, curr_start, prepend_chr)
               if len(ref) > len(alt):
-                  _, transcripts_ends = get_transcript_containing_pos(chr, gpos + (len(ref) - len(alt)), chr_to_transcript, curr_start)
+                  _, transcripts_ends = get_transcript_containing_pos(chr, gpos + (len(ref) - len(alt)), chr_to_transcript, curr_start, prepend_chr)
                   # if this position is in transcript ends but not transcript, then it overlaps with the start 
               in_orig = {}
               for k in range(len(transcripts)):
@@ -517,13 +518,15 @@ def main(genome_vcf_file, gtf_file, transcriptome_file, output_file, coordinate_
 
 def parse_arguments():
   parser = argparse.ArgumentParser()
-  parser.add_argument('-v','--genome-vcf-file', required=True, type=str)
+  parser.add_argument('-v','--genome-vcf-file', required=True, type=str, help='The genome vcf file to convert to transcriptomic vcf, must be gzipped.')
   parser.add_argument('-g','--gtf-file', required=True, type=str)
-  parser.add_argument('-t','--transcriptome', required=True, type=str)
+  parser.add_argument('-t','--transcriptome', required=True, type=str, help='The reference transcriptome to use for conversion, must be unzipped.')
   parser.add_argument('-o','--output', required=True, type=str)
   parser.add_argument('-c','--coordinate-output', required=True, type=str)
+  parser.add_argument('--no-prepend-chr', action='store_true', help='Do not prepend "chr" to chromosome names in GTF file.')
   return parser.parse_args()
 
 if __name__ == "__main__":
   args = parse_arguments()
-  main(args.genome_vcf_file, args.gtf_file, args.transcriptome, args.output, args.coordinate_output)
+  prepend_chr = not args.no_prepend_chr
+  main(args.genome_vcf_file, args.gtf_file, args.transcriptome, args.output, args.coordinate_output, prepend_chr)

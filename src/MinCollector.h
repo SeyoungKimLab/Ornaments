@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include <iostream>
+#include <limits>
 #include <fstream>
 #include <sstream>
 #include <vector>
