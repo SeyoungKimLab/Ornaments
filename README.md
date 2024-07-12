@@ -2,6 +2,9 @@
 Ornaments is a lightweight modification of kallisto that facilitates
 variant-aware pseudoalignment of RNA-Seq reads to obtain expected allele-specific read counts 
 at heterozygous variant loci in addition to transcriptome quantification. 
+The Ornaments method is described in detail in
+
+Abhinav Adduri and Seyoung Kim. Ornaments for efficient allele-specific expression estimation with bias correction. The American Journal of Humans Genetics, 2024.
 
 Ornaments takes as input an ornament personalized transcriptome and reads.
 Ornaments requires that the variants are listed in terms of transcriptomic coordinates. 
