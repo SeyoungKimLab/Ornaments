@@ -17,8 +17,8 @@ To compile ornaments, cmake is required. First, clone the repository and go into
 ornaments folder. 
 
 ```
-git clone https://gitlab.com/aadduri/ornaments.git
-cd ornaments
+git clone https://github.com/SeyoungKimLab/Ornaments.git
+cd Ornaments
 ```
 
 Next, we need to create a build folder. This folder will contain the ornaments executable.
