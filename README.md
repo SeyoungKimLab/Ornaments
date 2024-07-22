@@ -28,10 +28,18 @@ mkdir build
 cd build
 ```
 
-Finally, we will build the executable using cmake. If you do not have cmake installed, you can get it by running 
+Finally, we will build the executable using cmake. You will also need autoconf installed. If you do not have cmake or autoconf installed, you can get it on Mac by running 
 
 ```
 brew install cmake
+brew install autoconf
+```
+
+Alternatively, if you are using a Linux machine, you can install it using 
+
+```
+sudo apt-get install cmake
+sudo apt-get install autoconf
 ```
 
 Then, run
