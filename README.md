@@ -1,13 +1,13 @@
 # Ornaments
 Ornaments is a lightweight modification of kallisto that facilitates
-variant-aware pseudoalignment of RNA-Seq reads to obtain expected allele-specific read counts 
+variant-aware pseudoalignment of RNA-seq reads to obtain expected allele-specific read counts 
 at heterozygous variant loci in addition to transcriptome quantification. 
 The Ornaments method is described in detail in
 
 Abhinav Adduri and Seyoung Kim. Ornaments for efficient allele-specific expression estimation with bias correction. The American Journal of Humans Genetics, 2024.
 
 Ornaments takes as input an ornament personalized transcriptome and reads.
-Ornaments requires that the variants are listed in terms of transcriptomic coordinates. 
+Ornaments requires that the variants are listed in transcriptomic coordinates. 
 We provide helper scripts to transform the variant coordinates from genomic to transcriptomic coordinates
 and to generate an ornament personalized transcriptome from 
 a list of variants (both SNPs and indels are supported) and a reference transcriptome.
@@ -41,7 +41,7 @@ cmake ..
 make
 ```
 
-An executable will be built with the path/name _ornaments/build/src/ornaments_. If you would rather install the software
+An executable will be built with the path/name _Ornaments/build/src/ornaments_. If you would rather install the software
 in your home directory, rather than the above, you should run
 ```
 cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$HOME
