@@ -32,7 +32,6 @@ Finally, we will build the executable using cmake. You will also need autoconf a
 
 ```
 brew install cmake
-brew install autoconf
 brew install hdf5
 ```
 
@@ -40,8 +39,17 @@ On a Linux machine, you can install them using
 
 ```
 sudo apt-get install cmake
-sudo apt-get install autoconf
 sudo apt-get install libhdf5-dev
+```
+
+Lastly, we need to install a specific version of autoconf:
+
+```
+curl -O http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+tar zxvf autoconf-2.69.tar.gz
+cd autoconf-2.69
+./configure && make && sudo make install
+cd ..
 ```
 
 Then, run
@@ -58,7 +66,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$HOME
 make install
 ```
 
-This will build an executable at _$HOME/bin/ornaments_.
+This will build an executable at _$HOME/bin/ornaments_. If you are facing issues with build dependencies, please cross-reference with the [kallisto installation guide](https://pachterlab.github.io/kallisto/source).
 
 ## Data
 Example reference transcriptome and transcript annotation files necessary for the helper scripts can be found [here](https://www.gencodegenes.org/human/).
