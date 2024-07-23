@@ -28,18 +28,20 @@ mkdir build
 cd build
 ```
 
-Finally, we will build the executable using cmake. You will also need autoconf installed. If you do not have cmake or autoconf installed, you can get it on Mac by running 
+Finally, we will build the executable using cmake. You will also need autoconf and HDF5 C library installed. If you do not have them installed, you can get them on Mac by using [Homebrew](https://brew.sh/) and running 
 
 ```
 brew install cmake
 brew install autoconf
+brew install hdf5
 ```
 
-Alternatively, if you are using a Linux machine, you can install it using 
+On a Linux machine, you can install them using 
 
 ```
 sudo apt-get install cmake
 sudo apt-get install autoconf
+sudo apt-get install libhdf5-dev
 ```
 
 Then, run
