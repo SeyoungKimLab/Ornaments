@@ -73,11 +73,33 @@ In order to run Ornaments, you need to have [conda](https://conda.io/projects/co
 ```
 conda create --name ornaments python=3.6.10
 conda activate ornaments
+conda config --add channels bioconda
+conda config --add channels conda-forge
 conda install -c bioconda gtfparse=1.2.1
 conda install -c conda-forge biopython=1.78
 ```
 
-These packages are not needed to run Ornaments itself, but are needed for the helper scripts described below to prepare the inputs to Ornaments.
+These packages are not needed to run Ornaments itself, but are needed for the helper scripts described below to prepare the inputs to Ornaments. 
+
+If you have an M-chip Macbook, you should instead run:
+
+```
+arch -x86_64 zsh
+CONDA_SUBDIR=osx-64 conda create -n ornament python=3.6.10
+conda activate ornament
+```
+
+and the remaining steps stay the same.
+
+## Conda Installation
+
+Ornaments is also available via conda installation. After creating the ornaments conda environment and activating it, you can run:
+
+```
+conda install abhinadduri::ornaments
+```
+
+This will make the `ornaments` binary, as well as the `convert_genomic_vcf_to_transcriptomic_vcf`, `merge_transcriptome_vcfs`, and `create_personalized_transcriptome` binaries, globally available on your system. These binaries are described in more detail below.
 
 ## Preparation of variants
 
