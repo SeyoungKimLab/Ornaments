@@ -4,7 +4,7 @@ variant-aware pseudoalignment of RNA-seq reads to obtain expected allele-specifi
 at heterozygous variant loci in addition to transcriptome quantification. 
 The Ornaments method is described in detail in
 
-Abhinav Adduri and Seyoung Kim. Ornaments for efficient allele-specific expression estimation with bias correction. The American Journal of Humans Genetics, 2024.
+[Abhinav Adduri and Seyoung Kim. Ornaments for efficient allele-specific expression estimation with bias correction. The American Journal of Humans Genetics, 2024.](https://www.sciencedirect.com/science/article/pii/S0002929724002210?dgcid=author)
 
 Ornaments takes as input an ornament personalized transcriptome and reads.
 Ornaments requires that the variants are listed in transcriptomic coordinates. 
